@@ -1,3 +1,6 @@
+# Unique token code hiding in a vent!
+from token_file import code
+
 import discord
 import random
 from discord.ext import commands
@@ -152,4 +155,4 @@ class cluelessBot(commands.Bot):
 
 # Run Client
 client = cluelessBot(command_prefix="^", self_bot=False)
-client.run('Nzk2NTg3OTU5MTYzMjg5NjIw.X_aGWQ._8sHavOJ_C77wPAiZz3ixQZ9nwQ')
+client.run(code)
