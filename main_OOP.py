@@ -5,6 +5,7 @@ import discord
 import random
 from discord.ext import commands
 import pandas as pd
+import numpy as np
 import pickle
 
 # Print Packages
@@ -12,8 +13,8 @@ from tabulate import tabulate
 from pprint import pprint
 
 async def fprint(ctx, tab_name, temp_dt):
-    table_string = tabulate(temp_dt.transpose(), headers='keys', tablefmt='psql')
-    await ctx.message.channel.send("""```{}```""".format(table_string))
+    table_string = tabulate(temp_dt, headers='keys', tablefmt='psql')
+    await ctx.message.channel.send("""``` {} ```""".format(table_string))
 
 # Change only the no_category default string
 help_command = commands.DefaultHelpCommand(
@@ -49,6 +50,7 @@ class cluelessBot(commands.Bot):
         await general_channel.send(self, 'Bye bye world!')
 
     def add_commands(self):
+
         ########## FILE OPERATION COMMANDS ##########
 
         @self.command(name = 'create', pass_context=True, help = '[filename] [column names]')
@@ -58,9 +60,7 @@ class cluelessBot(commands.Bot):
             else:
                 self.appending = True
                 self.file_name = str(args[0])
-                keys = args[1:]
-                self.df = pd.DataFrame({'keys': keys})
-                self.df.set_index('keys', inplace=True)
+                self.df = pd.DataFrame(columns = args[1:], index = ['null'])
                 self.df.to_pickle(self.file_name + ".pkl")
                 await context.message.channel.send('Created table with name: ' + self.file_name)
                 await fprint(context, self.file_name, self.df)     
@@ -76,6 +76,7 @@ class cluelessBot(commands.Bot):
                     self.df = pd.read_pickle(self.file_name + '.pkl')
                     await context.message.channel.send('You are opening the table ' + self.file_name)
                     await fprint(context, self.file_name, self.df)
+                    await commands.Bot.change_presence(self, status=discord.Status.online, activity=discord.Game('with table {}'.format(self.file_name)))
                 except Exception as e:
                     await context.message.channel.send('File not found. System error: ' + str(e))
             else:
@@ -87,6 +88,7 @@ class cluelessBot(commands.Bot):
                 self.appending = False
                 self.df.to_pickle(self.file_name + ".pkl")
                 await context.message.channel.send('You have saved and closed the table: ' + self.file_name)
+                await commands.Bot.change_presence(self, status=discord.Status.online, activity=discord.Game('you are clueless.'))
             else:
                 await context.message.channel.send('You don\'t have a table opened.')
 
@@ -110,18 +112,87 @@ class cluelessBot(commands.Bot):
 
         ########## PANDA COMMANDS ##########
 
-        @self.command(name = 'append', pass_context=True, help = ' [row_key] [values in order]')
+        @self.command(name = 'append', pass_context=True, help = '[row name or index label] [values in order of columns]')
         async def _append(context, *args):
             if self.appending == True:
-                self.df[str(args[0])] = args[1:]
-                self.df.to_pickle(self.file_name + ".pkl")
-                await context.message.channel.send("Appended new row to the table: " + self.file_name)
-                await fprint(context, self.file_name, self.df)
+                try:
+                    self.df.loc[args[0]] = args[1:]
+                    self.df.to_pickle(self.file_name + ".pkl")
+                    await context.message.channel.send("Appended new row to the table: " + self.file_name)
+                    await fprint(context, self.file_name, self.df)
+                except Exception as e:
+                    await context.message.channel.send('Incorrect number of arguments. You must fill every column of the new row. System error: ' + str(e))
             else:
                 await context.message.channel.send('You don\'t have a table opened.')
 
+        @self.command(name = 'appendcol', pass_context=True, help = '[names of columns to be added]')
+        async def _appendcol(context, *args):
+            if self.appending == True:
+                try:
+                    for arg in args:
+                        self.df[str(arg)] = np.nan
+                    self.df.to_pickle(self.file_name + ".pkl")
+                    await context.message.channel.send("Appended new columns " + str(args) + " to the table: " + self.file_name)
+                    await fprint(context, self.file_name, self.df)
+                except Exception as e:
+                    await context.message.channel.send('System error: ' + str(e))
+            else:
+                await context.message.channel.send('You don\'t have a table opened.')
+
+        @self.command(name = 'drop', pass_context=True, help = '[names/ indexes of row(s) to remove]')
+        async def _drop(context, *args):
+            if self.appending == True:
+                try:
+                    row_names = list(args)
+                    self.df = self.df.drop(row_names)
+                    self.df.to_pickle(self.file_name + ".pkl")
+                    await context.message.channel.send("Deleted rows " + str(row_names) + " from table: " + self.file_name)
+                    await fprint(context, self.file_name, self.df)
+                except Exception as e:
+                    await context.message.channel.send('Rows not found. System error: ' + str(e))
+            else:
+                await context.message.channel.send('You don\'t have a table opened.')
+        
+        @self.command(name = 'dropcol', pass_context=True, help = '[names/ indexs of cols(s) to remove]')
+        async def _dropcol(context, *args):
+            if self.appending == True:
+                try:
+                    col_names = list(args)
+                    self.df = self.df.drop(col_names, axis=1)
+                    self.df.to_pickle(self.file_name + ".pkl")
+                    await context.message.channel.send("Deleted columns " + str(col_names) + " from table: " + self.file_name)
+                    await fprint(context, self.file_name, self.df)
+                except Exception as e:
+                    await context.message.channel.send('Columns not found. System error: ' + str(e))
+            else:
+                await context.message.channel.send('You don\'t have a table opened.')
+
+        @self.command(name = 'sel', pass_context=True, help = '[selected names of rows to view]')
+        async def _sel(context, *args):
+            if self.appending == True:
+                try:
+                    row_names = list(args)
+                    await context.message.channel.send("Printing rows " + str(row_names) + " from table: " + self.file_name)
+                    await fprint(context, self.file_name, self.df.loc[row_names])
+                except Exception as e:
+                    await context.message.channel.send('Rows not found. System error: ' + str(e))
+            else:
+                await context.message.channel.send('You don\'t have a table opened.')    
+
+        @self.command(name = 'selcol', pass_context=True, help = '[selected names of columns to view]')
+        async def _selcol(context, *args):
+            if self.appending == True:
+                try:
+                    col_names = list(args)
+                    await context.message.channel.send("Printing columns " + str(col_names) + " from table: " + self.file_name)
+                    await fprint(context, self.file_name, self.df[col_names])
+                except Exception as e:
+                    await context.message.channel.send('Columns not found. System error: ' + str(e))
+            else:
+                await context.message.channel.send('You don\'t have a table opened.')    
+
         ########## GENERAL COMMANDS ##########
-        @self.command(name = 'version', pass_context=True, help = 'duh!')
+        @self.command(name = 'version', pass_context=True, help = 'forever at version 0')
         async def _version(context):
             myEmbed = discord.Embed(
                 title = "Current Version",
@@ -146,7 +217,7 @@ class cluelessBot(commands.Bot):
             )
             await context.message.channel.send(embed = myEmbed)
 
-        @self.command(name = 'ping', pass_context=True, help = 'echoes your crazy voice')
+        @self.command(name = 'ping', pass_context=True, help = 'pong [your crazy thoughts]')
         async def _ping(context, *, arg):
             if arg == None:
                 await context.message.channel.send('You forgot to include an argument')
