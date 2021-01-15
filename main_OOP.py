@@ -170,6 +170,7 @@ class cluelessBot(commands.Bot):
                         total.append(sum_df[col].sum())
                     print(total)
                     self.df.loc["Sum"] = total
+                    self.df.to_pickle(self.file_name + ".pkl")
                     await context.message.channel.send("Totals of table: " + self.file_name)
                     await fprint(context, self.file_name, self.df)
                 except Exception as e:
