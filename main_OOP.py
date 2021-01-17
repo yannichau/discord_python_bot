@@ -8,6 +8,9 @@ import pandas as pd
 import numpy as np
 import pickle
 
+from PIL import Image, ImageDraw, ImageFont
+import textwrap
+
 # Print Packages
 from tabulate import tabulate
 from pprint import pprint
@@ -74,6 +77,7 @@ class cluelessBot(commands.Bot):
                 self.df.to_pickle(self.file_name + ".pkl")
                 check_list(self.file_name)
                 await context.message.channel.send('Created table with name: ' + self.file_name)
+                await commands.Bot.change_presence(self, status=discord.Status.online, activity=discord.Game('with table {} on {}'.format(self.file_name, str(context.guild))))
                 await fprint(context, self.file_name, self.df)     
 
         @self.command(name = 'open', pass_context=True, help = ' [filename]')
@@ -83,12 +87,12 @@ class cluelessBot(commands.Bot):
             elif self.appending == False:
                 try:
                     self.file_name = str(args[0])
-                    self.appending = True
                     self.df = pd.read_pickle(self.file_name + '.pkl')
                     check_list(self.file_name)
                     await context.message.channel.send('📂 You are opening the table ' + self.file_name)
                     await fprint(context, self.file_name, self.df)
-                    await commands.Bot.change_presence(self, status=discord.Status.online, activity=discord.Game('with table {}'.format(self.file_name)))
+                    self.appending = True
+                    await commands.Bot.change_presence(self, status=discord.Status.online, activity=discord.Game('with table {} on {}'.format(self.file_name, str(context.guild))))
                 except Exception as e:
                     await context.message.channel.send('❌ File not found. System error: ' + str(e))
             else:
@@ -119,6 +123,7 @@ class cluelessBot(commands.Bot):
                 self.df = pd.read_pickle(self.file_name + '.pkl')
                 await context.message.channel.send("🖨 Printing the table: " + self.file_name)
                 await fprint(context, self.file_name, self.df)
+                await commands.Bot.change_presence(self, status=discord.Status.online, activity=discord.Game('with table {} on {}'.format(self.file_name, str(context.guild))))
             except Exception as e:
                 await context.message.channel.send('❌ File not found. System error: ' + str(e))
 
@@ -137,7 +142,7 @@ class cluelessBot(commands.Bot):
                 try:
                     self.df.loc[args[0]] = args[1:]
                     self.df.to_pickle(self.file_name + ".pkl")
-                    await context.message.channel.send("➕ Appended new row to the table: " + self.file_name)
+                    await context.message.channel.send("👇 Appended new row to the table: " + self.file_name)
                     await fprint(context, self.file_name, self.df)
                 except Exception as e:
                     await context.message.channel.send('❌ Incorrect number of arguments. You must fill every column of the new row. System error: ' + str(e))
@@ -151,7 +156,7 @@ class cluelessBot(commands.Bot):
                     for arg in args:
                         self.df[str(arg)] = np.nan
                     self.df.to_pickle(self.file_name + ".pkl")
-                    await context.message.channel.send("➕ Appended new columns " + str(args) + " to the table: " + self.file_name)
+                    await context.message.channel.send("👉🏼 Appended new columns " + str(args) + " to the table: " + self.file_name)
                     await fprint(context, self.file_name, self.df)
                 except Exception as e:
                     await context.message.channel.send('❌ System error: ' + str(e))
@@ -240,7 +245,6 @@ class cluelessBot(commands.Bot):
                     for col in cols:
                         sum_df[col] = pd.to_numeric(sum_df[col], errors='coerce')
                         total.append(sum_df[col].sum())
-                    print(total)
                     sum_df.loc["Sum"] = total
                     await context.message.channel.send("Totals of table: " + self.file_name)
                     await fprint(context, self.file_name, sum_df)
@@ -250,29 +254,38 @@ class cluelessBot(commands.Bot):
                 await context.message.channel.send('❓ You don\'t have a table opened.')
 
         ########## GENERAL COMMANDS ##########
-        @self.command(name = 'version', pass_context=True, help = 'forever at version 0')
-        async def _version(context):
+        @self.command(name = 'about', pass_context=True, help = 'check out a couple details about clueless-bot')
+        async def _about(context):
             myEmbed = discord.Embed(
-                title = "Current Version",
-                description = "The bot is in version 1.0",
-                color = 0x00ff00
+                title = "About clueless-bot",
+                url = "https://github.com/cluelesselectrostar/discord_python_bot",
+                description = "A couple details about me!",
+                color = 0x93CEBA
             )
             myEmbed.add_field(
                 name = "Version Code:",
-                value = "1.0",
+                value = "0.1",
                 inline = False
             )
             myEmbed.add_field(
                 name = "Date Released:",
-                value = "7 Jan 2021",
+                value = "17 Jan 2021",
+                inline = False
+            )
+            myEmbed.add_field(
+                name = "GitHub Link:",
+                value = "https://github.com/cluelesselectrostar/discord_python_bot",
                 inline = False
             )
             myEmbed.set_footer(
-                text = "from clueless"
+                text = "from cluelessyanni"
             )
             myEmbed.set_author(
-                name = "cluelessyanni"
+                name = "Requested by the nosy guy " + context.author.display_name, 
+                icon_url = context.author.avatar_url
             )
+            myEmbed.set_thumbnail(url="https://og.github.com/mark/github-mark@1200x630.png")
+
             await context.message.channel.send(embed = myEmbed)
 
         @self.command(name = 'ping', pass_context=True, help = 'pong [your crazy thoughts]')

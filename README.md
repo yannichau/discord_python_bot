@@ -100,7 +100,7 @@ The following commands can only be run when a table is in appending mode. Or in 
 
 There's not much going on here. I normally run them just to check that the bot is actually running.
 
-    ^version     
+    ^about     
         check version of clueless-bot. forever at version 0!
 
     ^ping        [your crazy thoughts]
