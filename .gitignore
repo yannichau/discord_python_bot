@@ -1,7 +1,8 @@
 *.pkl
 /archive
-token.py
 __pycache__/token_file.cpython-38.pyc
 .gitignore
 token_file.py
 __pycache__/token.cpython-38.pyc
+/tables
+token_info.md

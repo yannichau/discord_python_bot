@@ -62,6 +62,9 @@ class cluelessBot(commands.Bot):
         general_channel = commands.Bot.get_channel(self, 795339542764585032)
         await general_channel.send(self, 'Bye bye world!')
 
+    async def on_command_error(self, context, error):
+        await context.send("Gulp! {}".format(str(error)))
+    
     def add_commands(self):
 
         ########## FILE OPERATION COMMANDS ##########
