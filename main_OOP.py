@@ -21,22 +21,14 @@ async def fprint(ctx, tab_name, temp_df):
 	await ctx.message.channel.send("""``` {} ```""".format(table_string))
 
 def check_list(folder, name):
-	try:
-		infile = open('tables/' + str(folder) + '/tables.pkl','rb')
-		tab_list = pickle.load(infile)
-		infile.close()
-		if name not in tab_list:
-			tab_list.append(name)
-		outfile = open('tables/' + str(folder) + '/tables.pkl','wb')
-		pickle.dump(tab_list, outfile)
-		outfile.close()
-	except:
-		tab_list = []
+	infile = open('tables/' + str(folder) + '/tables.pkl','rb')
+	tab_list = pickle.load(infile)
+	infile.close()
+	if name not in tab_list:
 		tab_list.append(name)
-		outfile = open('tables/' + str(folder) + '/tables.pkl','wb')
-		pickle.dump(tab_list, outfile)
-		outfile.close()
-		print("created new table and amended entry")
+	outfile = open('tables/' + str(folder) + '/tables.pkl','wb')
+	pickle.dump(tab_list, outfile)
+	outfile.close()
 
 def save_file(df, folder, name):
 	df.to_pickle("tables/" + str(folder) + "/" + name + ".pkl")
@@ -73,14 +65,30 @@ class cluelessBot(commands.Bot):
 	async def on_ready(self):
 		print(self.message1)
 		for guild in client.guilds:
-			id = guild.id
-			print(id)
-			self.file_dict[id] = "null"
-			self.appending_dict[id] = False
-			self.df_dict[id] = pd.DataFrame()
-			newpath = "tables/" + str(id)
+			ID = guild.id
+			self.file_dict[ID] = "null"
+			self.appending_dict[ID] = False
+			self.df_dict[ID] = pd.DataFrame()
+			newpath = "tables/" + str(ID)
+			trashpath = "tables/" + str(ID) + "/trash"
+
+			# Initialise folder for server: list of tables, and folder for trash
 			if not os.path.exists(newpath):
 				os.makedirs(newpath)
+				os.makedirs(trashpath)
+
+				# Create Table List
+				temp_list = []
+				temp_list.append("null")
+				tablist_file = open('tables/' + str(ID) + '/tables.pkl','wb')
+				pickle.dump(temp_list, tablist_file)
+				tablist_file.close()
+
+				# Create Trash List
+				trashlist_file = open('tables/' + str(ID) + '/trash/trash_index.pkl','wb')
+				pickle.dump(temp_list, trashlist_file)
+				trashlist_file.close()
+				print("Initialised empty table list and empty trash list for " + str(ID))
 	
 	async def on_disconnect(self):
 		general_channel = commands.Bot.get_channel(self, 795339542764585032)
@@ -106,6 +114,7 @@ class cluelessBot(commands.Bot):
 				await context.message.channel.send('Created table with name: ' + self.file_name)
 				await fprint(context, self.file_name, self.df)
 
+				# Amend flags
 				self.file_dict[context.guild.id] = self.file_name
 				self.appending_dict[context.guild.id] = self.appending
 				self.df_dict[context.guild.id] = self.df
@@ -123,6 +132,7 @@ class cluelessBot(commands.Bot):
 					await fprint(context, self.file_name, self.df)
 					self.appending = True
 
+					# Amend flags
 					self.file_dict[context.guild.id] = self.file_name
 					self.appending_dict[context.guild.id] = self.appending
 					self.df_dict[context.guild.id] = self.df
@@ -131,20 +141,22 @@ class cluelessBot(commands.Bot):
 			else:
 				await context.message.channel.send('❓ You have a table opened already.')               
 
-		@self.command(name = 'close', pass_context=True, help = '[filename]')
+		@self.command(name = 'close', pass_context=True, help = 'close currently opened file')
 		async def _close(context):
-			if self.appending_dict[context.guild.id] == True:
-				self.appending_dict[context.guild.id] = False
-				save_file(self.df_dict[context.guild.id], context.guild.id, self.file_dict[context.guild.id])
-				await context.message.channel.send('📂 You have saved and closed the table: ' + self.file_dict[context.guild.id])
+			ID = context.guild.id
+			if self.appending_dict[ID] == True:
+				self.appending_dict[ID] = False
+				save_file(self.df_dict[ID], ID, self.file_dict[ID])
+				await context.message.channel.send('📂 You have saved and closed the table: ' + self.file_dict[ID])
 			else:
 				await context.message.channel.send('❓ You don\'t have a table opened.')
 
 		@self.command(name = 'save', pass_context=True, help = '[filename]')
 		async def _save(context):
-			if self.appending_dict[context.guild.id] == True:
-				save_file(self.df_dict[context.guild.id], context.guild.id, self.file_dict[context.guild.id])
-				await context.message.channel.send('📂 You have saved the table: ' + self.file_dict[context.guild.id])			
+			ID = context.guild.id
+			if self.appending_dict[ID] == True:
+				save_file(self.df_dict[ID], ID, self.file_dict[ID])
+				await context.message.channel.send('📂 You have saved the table: ' + self.file_dict[ID])			
 			else:
 				await context.message.channel.send('❓ You don\'t have a table opened.')
 
@@ -165,10 +177,41 @@ class cluelessBot(commands.Bot):
 				tab_list = pickle.load(infile)
 				infile.close()
 				await context.message.channel.send('📝 List of tables saved on system: ' + str(tab_list))
-			except:
-				check_list(context.guild.id, "null")
-				await context.message.channel.send('📝 You have no tables. Initialised empty list')
+			except Exception as e:
+				await context.message.channel.send('❌ System error: ' + str(e))
 
+		@self.command(name = 'rename', pass_context=True, help = '[old filename] [new filename]')
+		async def _rename(context, *, args):
+			try:
+				if len(args) != 2:
+					await context.message.channel.send('❌ Command usage: ^rename [old_name] [new_name]')
+				else:
+					# Rename in file system
+					folder = str(context.guild.id)
+					old_file = str(args[0])
+					new_file = str(args[1])
+					os.rename("tables/" + folder + "/" + old_file + ".pkl", "tables/" + str(context.guild.id) + "/" + new_file + ".pkl")
+					
+					# Rename in tables.pkl
+					infile = open('tables/' + folder + '/tables.pkl','rb')
+					tab_list = pickle.load(infile)
+					infile.close()
+					tab_list = [item.replace(old_file, new_file) for item in tab_list]
+					outfile = open('tables/' + folder + '/tables.pkl','wb')
+					pickle.dump(tab_list, outfile)
+					outfile.close()
+			except Exception as e:
+				await context.message.channel.send('❌ File not found . System error: ' + str(e))
+
+		#TODO:
+		@self.command(name = 'delete', pass_context=True, help = '[filename]')
+		async def _delete(context):
+			pass
+		
+		#TODO:
+		@self.command(name = 'recover', pass_context=True, help = '[filename]')
+		async def _recover(context):
+			pass
 
 		########## PANDA COMMANDS ##########
 
