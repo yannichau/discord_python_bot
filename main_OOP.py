@@ -7,6 +7,7 @@ from discord.ext import commands
 import pandas as pd
 import numpy as np
 import pickle
+import os
 
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
@@ -19,22 +20,29 @@ async def fprint(ctx, tab_name, temp_df):
 	table_string = tabulate(temp_df, headers='keys', tablefmt='psql')
 	await ctx.message.channel.send("""``` {} ```""".format(table_string))
 
-def check_list(name):
-	infile = open('tables.pkl','rb')
-	tab_list = pickle.load(infile)
-	infile.close()
-	if name not in tab_list:
+def check_list(folder, name):
+	try:
+		infile = open('tables/' + str(folder) + '/tables.pkl','rb')
+		tab_list = pickle.load(infile)
+		infile.close()
+		if name not in tab_list:
+			tab_list.append(name)
+		outfile = open('tables/' + str(folder) + '/tables.pkl','wb')
+		pickle.dump(tab_list, outfile)
+		outfile.close()
+	except:
+		tab_list = []
 		tab_list.append(name)
-	outfile = open('tables.pkl','wb')
-	pickle.dump(tab_list, outfile)
-	outfile.close()
+		outfile = open('tables/' + str(folder) + '/tables.pkl','wb')
+		pickle.dump(tab_list, outfile)
+		outfile.close()
+		print("created new table and amended entry")
 
-def save_file(df, name):
-	df.to_pickle("tables/" + name + ".pkl")
+def save_file(df, folder, name):
+	df.to_pickle("tables/" + str(folder) + "/" + name + ".pkl")
 
-def open_file(name):
-	df = pd.read_pickle("tables/" + name + ".pkl")
-	# df = pd.read_pickle("tables/" + folder + "/" + name + ".pkl")
+def open_file(folder, name):
+	df = pd.read_pickle("tables/" + str(folder) + "/" + name + ".pkl")
 	return df
 
 # Change only the no_category default string
@@ -65,11 +73,14 @@ class cluelessBot(commands.Bot):
 	async def on_ready(self):
 		print(self.message1)
 		for guild in client.guilds:
-			print(id)
 			id = guild.id
+			print(id)
 			self.file_dict[id] = "null"
 			self.appending_dict[id] = False
 			self.df_dict[id] = pd.DataFrame()
+			newpath = "tables/" + str(id)
+			if not os.path.exists(newpath):
+				os.makedirs(newpath)
 	
 	async def on_disconnect(self):
 		general_channel = commands.Bot.get_channel(self, 795339542764585032)
@@ -90,8 +101,8 @@ class cluelessBot(commands.Bot):
 				self.appending = True
 				self.file_name = str(args[0])
 				self.df = pd.DataFrame(columns = args[1:], index = ['null'])
-				save_file(self.df[context.guild.id], self.file_name)
-				check_list(self.file_name)
+				check_list(context.guild.id, self.file_name)
+				save_file(self.df, context.guild.id, self.file_name)
 				await context.message.channel.send('Created table with name: ' + self.file_name)
 				await fprint(context, self.file_name, self.df)
 
@@ -106,8 +117,8 @@ class cluelessBot(commands.Bot):
 			elif self.appending_dict[context.guild.id] == False:
 				try:
 					self.file_name = str(args[0])
-					self.df = open_file(self.file_name)
-					check_list(self.file_name)
+					self.df = open_file(context.guild.id, self.file_name)
+					check_list(context.guild.id, self.file_name)
 					await context.message.channel.send('📂 You are opening the table ' + self.file_name)
 					await fprint(context, self.file_name, self.df)
 					self.appending = True
@@ -124,7 +135,7 @@ class cluelessBot(commands.Bot):
 		async def _close(context):
 			if self.appending_dict[context.guild.id] == True:
 				self.appending_dict[context.guild.id] = False
-				save_file(self.df_dict[context.guild.id], self.file_dict[context.guild.id])
+				save_file(self.df_dict[context.guild.id], context.guild.id, self.file_dict[context.guild.id])
 				await context.message.channel.send('📂 You have saved and closed the table: ' + self.file_dict[context.guild.id])
 			else:
 				await context.message.channel.send('❓ You don\'t have a table opened.')
@@ -132,13 +143,8 @@ class cluelessBot(commands.Bot):
 		@self.command(name = 'save', pass_context=True, help = '[filename]')
 		async def _save(context):
 			if self.appending_dict[context.guild.id] == True:
-				self.file_name = self.file_dict[context.guild.id]
-				self.df = self.df_dict[context.guild.id]
-
-				save_file(self.df, self.file_name)
-
-				self.df_dict[context.guild.id] = self.df 
-				await context.message.channel.send('📂 You have saved the table: ' + self.file_name)			
+				save_file(self.df_dict[context.guild.id], context.guild.id, self.file_dict[context.guild.id])
+				await context.message.channel.send('📂 You have saved the table: ' + self.file_dict[context.guild.id])			
 			else:
 				await context.message.channel.send('❓ You don\'t have a table opened.')
 
@@ -146,7 +152,7 @@ class cluelessBot(commands.Bot):
 		async def _print(context, *, args):
 			try:
 				self.file_name = str(args)
-				self.df = open_file(self.file_name)
+				self.df = open_file(context.guild.id, self.file_name)
 				await context.message.channel.send("🖨 Printing the table: " + self.file_name)
 				await fprint(context, self.file_name, self.df)
 			except Exception as e:
@@ -154,10 +160,15 @@ class cluelessBot(commands.Bot):
 
 		@self.command(name = 'list', pass_context=True, help = 'returns all available tables on my computer!')
 		async def _list(context):
-			infile = open('tables.pkl','rb')
-			tab_list = pickle.load(infile)
-			infile.close()
-			await context.message.channel.send('📝 List of tables saved on system: ' + str(tab_list))
+			try:
+				infile = open('tables/' + str(context.guild.id) + '/tables.pkl','rb')
+				tab_list = pickle.load(infile)
+				infile.close()
+				await context.message.channel.send('📝 List of tables saved on system: ' + str(tab_list))
+			except:
+				check_list(context.guild.id, "null")
+				await context.message.channel.send('📝 You have no tables. Initialised empty list')
+
 
 		########## PANDA COMMANDS ##########
 
@@ -170,7 +181,7 @@ class cluelessBot(commands.Bot):
 					self.df = self.df_dict[context.guild.id]
 
 					self.df.loc[args[0]] = args[1:]
-					save_file(self.df, self.file_name)
+					save_file(self.df, context.guild.id, self.file_name)
 					await context.message.channel.send("👇 Appended new row to the table: " + self.file_name)
 					await fprint(context, self.file_name, self.df)
 
@@ -189,7 +200,7 @@ class cluelessBot(commands.Bot):
 				try:
 					for arg in args:
 						self.df[str(arg)] = np.nan
-					save_file(self.df, self.file_name)
+					save_file(self.df, context.guild.id, self.file_name)
 					await context.message.channel.send("👉🏼 Appended new columns " + str(args) + " to the table: " + self.file_name)
 					await fprint(context, self.file_name, self.df)
 
@@ -214,7 +225,7 @@ class cluelessBot(commands.Bot):
 						total.append(sum_df[col].sum())
 					print(total)
 					self.df.loc["Sum"] = total
-					save_file(self.df, self.file_name)
+					save_file(self.df, context.guild.id, self.file_name)
 					await context.message.channel.send("Totals of table: " + self.file_name)
 					await fprint(context, self.file_name, self.df)
 
@@ -233,7 +244,7 @@ class cluelessBot(commands.Bot):
 				try:
 					row_names = list(args)
 					self.df = self.df.drop(row_names)
-					save_file(self.df, self.file_name)
+					save_file(self.df, context.guild.id, self.file_name)
 					await context.message.channel.send("🗑 Deleted rows " + str(row_names) + " from table: " + self.file_name)
 					await fprint(context, self.file_name, self.df)
 
@@ -252,7 +263,7 @@ class cluelessBot(commands.Bot):
 				try:
 					col_names = list(args)
 					self.df = self.df.drop(col_names, axis=1)
-					save_file(self.df, self.file_name)
+					save_file(self.df, context.guild.id, self.file_name)
 					await context.message.channel.send("🗑  Deleted columns " + str(col_names) + " from table: " + self.file_name)
 					await fprint(context, self.file_name, self.df)
 
