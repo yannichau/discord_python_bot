@@ -203,14 +203,19 @@ class cluelessBot(commands.Bot):
 			except Exception as e:
 				await context.message.channel.send('❌ File not found . System error: ' + str(e))
 
-		#TODO:
-		@self.command(name = 'delete', pass_context=True, help = '[filename]')
-		async def _delete(context):
+		#TODO: Seperate commands into cogs
+		@self.command(name = 'trashlist', pass_context=True, help = 'lists all files deleted')
+		async def _trashlist(context):
 			pass
 		
 		#TODO:
-		@self.command(name = 'recover', pass_context=True, help = '[filename]')
-		async def _recover(context):
+		@self.command(name = 'delete', pass_context=True, help = '[filename]')
+		async def _delete(context):
+			pass		
+		
+		#TODO:
+		@self.command(name = 'recycle', pass_context=True, help = '[filename]')
+		async def _recycle(context):
 			pass
 
 		########## PANDA COMMANDS ##########
@@ -367,6 +372,26 @@ class cluelessBot(commands.Bot):
 			else:
 				await context.message.channel.send('❓ You don\'t have a table opened.')
 
+		#TODO:
+		@self.command(name = 'sort', pass_context=True, help = 'sorts rows in an lexiographically ascending order, with respect to key values')
+		async def _sort(context):
+			pass
+
+		#TODO:
+		@self.command(name = 'sortcol', pass_context=True, help = '[row]')
+		async def _sortcol(context):
+			pass
+
+		#TODO:
+		@self.command(name = 'namerow', pass_context=True, help = '[row]')
+		async def _sort(context):
+			pass
+
+		#TODO:
+		@self.command(name = 'namecol', pass_context=True, help = '[col]')
+		async def _sortcol(context):
+			pass
+		
 		########## GENERAL COMMANDS ##########
 		@self.command(name = 'about', pass_context=True, help = 'check out a couple details about clueless-bot')
 		async def _about(context):
