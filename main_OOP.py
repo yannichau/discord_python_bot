@@ -600,48 +600,8 @@ class cluelessBot(commands.Bot):
 			else:
 				await context.message.channel.send('You don\'t have a table opened.')
 		
-		########## GENERAL COMMANDS ##########
-		@self.command(name = 'about', pass_context=True, help = 'check out a couple details about clueless-bot')
-		async def _about(context):
-			myEmbed = discord.Embed(
-				title = "About clueless-bot",
-				url = "https://github.com/cluelesselectrostar/discord_python_bot",
-				description = "A couple details about me!",
-				color = 0x93CEBA
-			)
-			myEmbed.add_field(
-				name = "Version Code:",
-				value = "0.1",
-				inline = False
-			)
-			myEmbed.add_field(
-				name = "Date Released:",
-				value = "17 Jan 2021",
-				inline = False
-			)
-			myEmbed.add_field(
-				name = "GitHub Link:",
-				value = "https://github.com/cluelesselectrostar/discord_python_bot",
-				inline = False
-			)
-			myEmbed.set_footer(
-				text = "from cluelessyanni"
-			)
-			myEmbed.set_author(
-				name = "Requested by the nosy guy " + context.author.display_name, 
-				icon_url = context.author.avatar_url
-			)
-			myEmbed.set_thumbnail(url="https://og.github.com/mark/github-mark@1200x630.png")
-
-			await context.message.channel.send(embed = myEmbed)
-
-		@self.command(name = 'ping', pass_context=True, help = 'pong [your crazy thoughts]')
-		async def _ping(context, *, arg):
-			if arg == None:
-				await context.message.channel.send('You forgot to include an argument')
-			else:
-				await context.message.channel.send(str(context.author.mention)+ " " + str(arg))
 
 # Run Client
 client = cluelessBot(command_prefix="^", self_bot=False)
+client.load_extension('misc')
 client.run(code)
