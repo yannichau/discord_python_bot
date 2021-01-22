@@ -426,16 +426,57 @@ class cluelessBot(commands.Bot):
 			else:
 				await context.message.channel.send('❓ You don\'t have a table opened.')
 
-		#TODO: Seperate commands into cogs
-		@self.command(name = 'sort', pass_context=True, help = 'sorts rows in an lexiographically ascending order, with respect to key values')
-		async def _sort(context):
-			pass
+		@self.command(name = 'sort', pass_context=True, help = '[optional: -c/-r] [col/row]')
+		async def _sort(context, *args):
+			self.ID = context.guild.id
+			if self.appending_dict[self.ID] == True:
+				# Load files
+				self.file_name = self.file_dict[self.ID]
+				self.df = self.df_dict[self.ID]
+				error = False
+				name = "null"
+				stype = "null"
 
-		#TODO: 
-		@self.command(name = 'sortcol', pass_context=True, help = '[row]')
-		async def _sortcol(context):
-			pass
+				# Forced row/col or guessed sorting
+				if args[0] == "-c":
+					name = args[1]
+					try:
+						self.df.sort_values(by=name)
+						stype = "column"
+					except Exception as e:
+						error = True
+						await context.message.channel.send('❌ Column not found. System error: ' + str(e))
+				if args[0] == "-r":
+					name = args[1]
+					try:
+						self.df.sort_values(by=name, axis=1)
+						stype = "row"
+					except Exception as e:
+						error = True
+						await context.message.channel.send('❌ Row not found. System error: ' + str(e))
+				else:
+					name = args[0]
+					try:
+						self.df.sort_values(by=name)
+						stype = "column"
+					except Exception as e:
+						try:
+							self.df.sort_values(by=name, axis=1)
+							stype = "row"
+						except Exception as e:
+							error = True
+							await context.message.channel.send('❌ Row or column not found. System error: ' + str(e))
+				
+				# Save and print if no errors found
+				if error == False:
+					save_file(self.df, self.ID, self.file_name)
+					await context.message.channel.send("🎲 Sorted " + self.file_name + " by " + stype + " " + name)
+					await fprint(context, self.file_name, self.df)
+					self.df_dict[self.ID] = self.df
+			else:
+				await context.message.channel.send('You don\'t have a table opened.')
 
+		# TODO: Fix -c and -r flags; Seperate commands into cogs
 		@self.command(name = 'rename', pass_context=True, help = ' [optional: -c/-r] [old col/row] [new col/row]')
 		async def _rename(context, *args):
 			self.ID = context.guild.id
@@ -445,30 +486,18 @@ class cluelessBot(commands.Bot):
 				self.df = self.df_dict[self.ID]
 
 				# By default second and third arguments are old and new col/row names
+				stype = "null"
 				error = False
 
 				# Forced row/col or guessed renaming
-				if args[0] == "-c": # Force rename column
+				if args[0] == "-c" or args[0] == "-r": # Force rename column
 					old, new = args[1], args[2]
-					try:
-						self.df.rename(columns = {old:new}, inplace = True)
-					except Exception as e:
-						error = True
-						await context.message.channel.send('❌ Column not found. System error: ' + str(e))
-				elif args[0] == "-r": # Force rename row
-					old, new = args[1], args[2]
-					try:
-						self.df.rename({old:new}, inplace = True)
-					except Exception as e:
-						error = True
-						await context.message.channel.send('❌ Row not found. System error: ' + str(e))
+					self.df.rename({old:new}, inplace = True)
+					self.df.rename(columns = {old:new}, inplace = True)
 				else: # Try amend row, then try amend column
 					old, new = args[0], args[1]
-					try:
-						self.df.rename({old:new}, inplace = True)
-						self.df.rename(columns = {old:new}, inplace = True)
-					except Exception as e: # never returns errors!!!!
-						await context.message.channel.send('❌ Row or column not found. System error: ' + str(e))
+					self.df.rename({old:new}, inplace = True)
+					self.df.rename(columns = {old:new}, inplace = True)
 
 				# If no errors save and print table
 				if error == False:
