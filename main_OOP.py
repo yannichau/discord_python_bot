@@ -12,7 +12,6 @@ from collections import defaultdict
 
 # Print Packages
 from tabulate import tabulate
-from pprint import pprint
 
 # Print Table
 async def fprint(ctx, tab_name, temp_df):

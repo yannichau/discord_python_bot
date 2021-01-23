@@ -16,7 +16,7 @@ fileop_list = [
     },
     {
         "name": "list",
-        "arguments": "[filename]",
+        "arguments": "",
         "description": "📖 list all tables on the server",
     },{
         "name": "open",
