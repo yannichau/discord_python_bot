@@ -20,7 +20,8 @@ from pprint import pprint
 # Print Table
 async def fprint(ctx, tab_name, temp_df):
 	table_string = tabulate(temp_df, headers='keys', tablefmt='psql')
-	await ctx.message.channel.send("""``` {} ```""".format(table_string))
+	await ctx.message.channel.send("""``` {}
+{} ```""".format(tab_name, table_string))
 
 # Manipulate tables.pkl or trash_index.pkl
 def list_drop(path, item):
@@ -71,11 +72,6 @@ def dict_append(df_dict, df):
 	print(str(df_dict))
 	return df_dict
 
-# Change only the no_category default string
-help_command = commands.DefaultHelpCommand(
-	no_category = 'Commands!'
-)
-
 class cluelessBot(commands.Bot):
 
 	# FLAGS in each server
@@ -94,7 +90,6 @@ class cluelessBot(commands.Bot):
 		commands.Bot.__init__(self, command_prefix=command_prefix, self_bot=self_bot)
 		self.message1 = "[INFO]: Panxcel is now online"
 		self.add_commands()
-		self.help_command =  help_command
 
 	async def on_ready(self):
 		print(self.message1)
@@ -283,7 +278,7 @@ class cluelessBot(commands.Bot):
 			except Exception as e:
 				await context.message.channel.send('❌ System error: ' + str(e))
 
-		@self.command(name = 'renamefile', pass_context=True, help = '[old filename] [new filename]')
+		@self.command(name = 'renamefile', pass_context=True, help = '[old filename] [new filename]', cog_name = 'file operation')
 		async def _renamefile(context, *args):
 			self.ID = context.guild.id
 			try:
@@ -600,8 +595,11 @@ class cluelessBot(commands.Bot):
 			else:
 				await context.message.channel.send('You don\'t have a table opened.')
 		
+# INITIALISE CLIENT
+client = cluelessBot(command_prefix="^", self_bot=False)
+client.remove_command('help')
+client.load_extension('help')
+client.load_extension('misc')
 
 # Run Client
-client = cluelessBot(command_prefix="^", self_bot=False)
-client.load_extension('misc')
 client.run(code)
