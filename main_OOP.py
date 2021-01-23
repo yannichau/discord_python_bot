@@ -10,9 +10,6 @@ import pickle
 import os
 from collections import defaultdict
 
-from PIL import Image, ImageDraw, ImageFont
-import textwrap
-
 # Print Packages
 from tabulate import tabulate
 from pprint import pprint
@@ -598,7 +595,7 @@ class cluelessBot(commands.Bot):
 # INITIALISE CLIENT
 client = cluelessBot(command_prefix="^", self_bot=False)
 client.remove_command('help')
-client.load_extension('help')
+client.load_extension('help_cmd')
 client.load_extension('misc')
 
 # Run Client

@@ -1,18 +1,14 @@
-# clueless-bot
+# Panxcel
 
 Discord is far more than an online social networking tool. The platform allows developers to create a wide variety of bots, allowing them and to bring a range of interactive activities to users' chats, and inject a bit of life into an otherwise passive networking platform. Oddly, despite the widespread use of python for data science, very few python discord bot developers (or none, from observation) have attempted to create some some sort of discord bot that takes advantage of its python's beautifully simple data sciennce packages, such as Pandas.
 
 This project is an attempt to wrap a couple "excel-like" functions into a python-scripted discord bot. At the moment it is relatively primitive, and it merely includes a couple file operation and column/row manipulation commands. At the moment, I can forsee it being a scoreboard tool on discord. Hopefully it will find its way into something more than this!
 
-**Table of Contents**
+Why is the bot called "Panxcel" you say? Because the bot runs with Python's "Pandas" dataframes, and for most people using this bot, they will probably associate this with "Excel". And incidentally it sounds like ✏️ pencil. Hence the name "Panxcel"!
 
-- [clueless-bot](#clueless-bot)
-  - [Quick walkthrough](#quick-walkthrough)
-  - [Commands](#commands)
-    - [File Operation](#file-operation)
-    - [Dataframe Manipulation (Based on Pandas)](#dataframe-manipulation-based-on-pandas)
-    - [General useless commands](#general-useless-commands)
-  - [Roadmap](#roadmap)
+To invite Panxcel into your discord server, click [here](https://discord.com/oauth2/authorize?client_id=800745140733608006&scope=bot&permissions=2147483647).
+
+<img src="screenshots/bot_icon.png" alt="icon" width="100" height="100"/>
 
 ## Quick walkthrough
 
@@ -40,74 +36,14 @@ The `^sel` feature might be particularly useful for viewing a certain set of dat
 
 ![sel](screenshots/6_sel.png)
 
-This is a non-exhaustive list of things you can do with this bot. To check out the many more features, have a look at the list of commands.
+This is a non-exhaustive list of things you can do with this bot. To check out the many more features, have a look at all the commands listed upon calling `^help`.
 
-## Commands
+## Roadmap/ Changelog
 
-Currently, to differentiate commands from regular messages, all commands must be accessed with a `^` prefix. The additional arguments required are specified in `[brackets]`. In addition, always use "double quotes"
+[x] Actually host the bot online, so that different servers can use the bot at the same time, and to ensure that the tables are not all jammed up on my local hard drive.
 
-### File Operation
+[x] Support multiple servers simultaneously.
 
-    ^close       [filename]
-        close and save the currently opened table.
+[x] Support undo/redo - currently supports up to 10 undos.
 
-    ^create      [filename] [col names]
-        create a new table, specifying the table name as well as the column names.
-
-    ^list        
-        returns all available tables on my computer!
-
-    ^open        [filename]
-        open a table, specifying its name.
-        simultaneously, the bot will change its status to playing [your table name]
-
-    ^print       [filename]
-        print a table, specifying its name.
-
-    ^save        [filename]
-        save a table, specifying its name.
-        note: the table is saved when ^closed or manipulated with commands in the next section.
-
-### Dataframe Manipulation (Based on Pandas)
-
-The following commands can only be run when a table is in appending mode. Or in other words run these commands after an `^open` or `^create` operation.
-
-    ^append      [row name] [values]
-        append one new row, specifying the row name, and values of all cells in the row.
-
-    ^appendcol   [cols]
-        append empty new column(s), specifying the name(s) for them
-
-    ^appendtotal append total of column to bottom row
-        same as ^total, except doing so appends the row of totals to the table.
-
-    ^drop        [rows]
-        delete rows, specifying the names of the row(s) to be removed.
-
-    ^dropcol     [cols]
-        delete cols, specifying the names of the columns(s) to be removed.
-
-    ^sel         [rows]
-        temporarily view selected rows by specifying their names.
-
-    ^selcol      [cols]
-        temporarily view selected columns by specifying their names.
-
-    ^total       
-        temporarily view the sum of every single cell for each column.
-
-### General useless commands
-
-There's not much going on here. I normally run them just to check that the bot is actually running.
-
-    ^about     
-        check version of clueless-bot. forever at version 0!
-
-    ^ping        [your crazy thoughts]
-        pong your crazy thoughts
-
-## Roadmap
-
-1. Actually host the bot online, so that different servers can use the bot at the same time, and to ensure that the tables are not all jammed up on my local hard drive.
-
-2. Support for more row and column operations, as well as other methods of displaying the table.
+[ ] Support for more row and column operations, as well as other methods of displaying the table.

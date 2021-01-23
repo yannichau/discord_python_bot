@@ -1,5 +1,7 @@
 from discord.ext import commands
+from disputils import BotEmbedPaginator, BotConfirmation, BotMultipleChoice
 import discord
+
 
 fileop_list = [
     {
@@ -132,6 +134,87 @@ panda_dict  = create_help_list(panda_list)
 trash_dict = create_help_list(trash_list)
 misc_dict = create_help_list(misc_list)
 
+# EMBED 1: PANDAS
+Embed1 = discord.Embed(
+    title = "Help 1/4: Table Manipulations 📝",
+    url = "https://github.com/cluelesselectrostar/discord_python_bot",
+    description = """-c or -r are optional arguments to force operation on column/ row
+Always remember to use \"double quotes\" for specifying table or file names with two or more words.
+----------------------------------------------------------------------------------""",
+    color = 0x93CEBA
+)
+for item in panda_list:
+    Embed1.add_field(
+        name = """```{} {}```""".format(item["name"], item["arguments"]),
+        value = """{}
+.""".format(item["description"]),
+        inline = False
+    )
+Embed1.set_footer(
+    text = """Type ^help [command] to check out more details
+React to the buttons to paginate: Now on page"""
+)
+
+# EMBED 2: FILE
+Embed2 = discord.Embed(
+    title = "Help 2/4: File Operations 🗄",
+    description = """Always remember to use \"double quotes\" for specifying table or file names with two or more words.
+----------------------------------------------------------------------------------""",
+    url = "https://github.com/cluelesselectrostar/discord_python_bot",
+    color = 0x93CEBA
+)
+for item in fileop_list:
+    Embed2.add_field(
+        name = """```{} {}```""".format(item["name"], item["arguments"]),
+        value = """{}
+.""".format(item["description"]),
+        inline = False
+    )
+Embed2.set_footer(
+    text = """Type ^help [command] to check out more details
+React to the buttons to paginate: Now on page"""
+)
+
+# EMBED 3: TRASH
+Embed3 = discord.Embed(
+    title = "Help 3/4: Deal with Trash 🗑",
+    url = "https://github.com/cluelesselectrostar/discord_python_bot",
+    description = """Always remember to use \"double quotes\" for specifying table or file names with two or more words.
+----------------------------------------------------------------------------------""",
+    color = 0x93CEBA
+)
+for item in trash_list:
+    Embed3.add_field(
+        name = """```{} {}```""".format(item["name"], item["arguments"]),
+        value = """{}
+.""".format(item["description"]),
+        inline = False
+    )
+Embed3.set_footer(
+    text = """Type ^help [command] to check out more details
+React to the buttons to paginate: Now on page"""
+)
+
+# EMBED 4: MISC
+Embed4 = discord.Embed(
+    title = "Help 4/4: Miscellaneous Operations 😆",
+    url = "https://github.com/cluelesselectrostar/discord_python_bot",
+    description = """Always remember to use \"double quotes\" for specifying table or file names with two or more words.
+----------------------------------------------------------------------------------""",
+    color = 0x93CEBA
+)
+for item in misc_list:
+    Embed4.add_field(
+        name = """```{} {}```""".format(item["name"], item["arguments"]),
+        value = """{}
+.""".format(item["description"]),
+        inline = False
+    )
+Embed4.set_footer(
+    text = """Type ^help [command] to check out more details
+React to the buttons to paginate: Now on page"""
+)
+
 class Help(commands.Cog):
 
     def __init__(self, bot):
@@ -141,75 +224,9 @@ class Help(commands.Cog):
     @commands.command(name = 'help', pass_context=True)
     async def _help(self, context, *args):
         if len(args) == 0:
-            Embed1 = discord.Embed(
-                title = "Help 1: Table Manipulations 📝",
-                url = "https://github.com/cluelesselectrostar/discord_python_bot",
-                description = "-c or -r are optional arguments to force operation on column/ row",
-                color = 0x93CEBA
-            )
-            for item in panda_list:
-                Embed1.add_field(
-                    name = """```{} {}```""".format(item["name"], item["arguments"]),
-                    value = item["description"],
-                    inline = False
-                )
-            Embed1.set_footer(
-                text = """Type ^help [command] to check out more details
-Page 1/4"""
-            )
-            await context.message.channel.send(embed = Embed1)
-
-            Embed2 = discord.Embed(
-                title = "Help 2: File Operations 🗄",
-                url = "https://github.com/cluelesselectrostar/discord_python_bot",
-                color = 0x93CEBA
-            )
-            for item in fileop_list:
-                Embed2.add_field(
-                    name = """```{} {}```""".format(item["name"], item["arguments"]),
-                    value = item["description"],
-                    inline = False
-                )
-            Embed2.set_footer(
-                text = """Type ^help [command] to check out more details
-Page 2/4"""
-            )
-            await context.message.channel.send(embed = Embed2) 
-
-            Embed3 = discord.Embed(
-                title = "Help 3: Deal with Trash 🗑",
-                url = "https://github.com/cluelesselectrostar/discord_python_bot",
-                color = 0x93CEBA
-            )
-            for item in trash_list:
-                Embed3.add_field(
-                    name = """```{} {}```""".format(item["name"], item["arguments"]),
-                    value = item["description"],
-                    inline = False
-                )
-            Embed3.set_footer(
-                text = """Type ^help [command] to check out more details
-Page 3/4"""
-            )
-            await context.message.channel.send(embed = Embed3)
-
-            Embed4 = discord.Embed(
-                title = "Help 4: Miscellaneous Operations 😆",
-                url = "https://github.com/cluelesselectrostar/discord_python_bot",
-                color = 0x93CEBA
-            )
-            for item in trash_list:
-                Embed4.add_field(
-                    name = """```{} {}```""".format(item["name"], item["arguments"]),
-                    value = item["description"],
-                    inline = False
-                )
-            Embed4.set_footer(
-                text = """Type ^help [command] to check out more details
-Page 4/4"""
-            )
-            await context.message.channel.send(embed = Embed4) 
-
+            embeds = [Embed1, Embed2, Embed3, Embed4]
+            paginator = BotEmbedPaginator(context, embeds)
+            await paginator.run()
         else:
             print("trying to find command")
             cmd = args[0]
@@ -223,18 +240,19 @@ Page 4/4"""
             if cmd_dict == dict():
                 await context.message.channel.send("🙅‍♂️ This command does not exist.") 
             else:
-                Embed3 = discord.Embed(
+                Embed5 = discord.Embed(
                     title = "Help for command ^" + cmd,
                     url = "https://github.com/cluelesselectrostar/discord_python_bot",
                     description = """```^{} {}```
-{}""".format(item["name"], item["arguments"], item["description"]),
+{}
+""".format(item["name"], item["arguments"], item["description"]),
                     color = 0x93CEBA
                 )
-                Embed3.set_footer(
+                Embed5.set_footer(
                     text = """Type ^help to check out all commands.
 If applicable, -c or -r are optional arguments to force operation on column/ row"""
                 )
-                await context.message.channel.send(embed = Embed3) 
+                await context.message.channel.send(embed = Embed5) 
 
 
 def setup(bot):
