@@ -10,6 +10,20 @@ To invite Panxcel into your discord server, click [here](https://discord.com/oau
 
 <img src="screenshots/bot_icon.png" alt="icon" width="100" height="100"/>
 
+## List of commands
+
+This is a list of all commands available, which can be viewed upon calling `^help`.
+
+<p float="centre">
+  <img src="screenshots/help1.png" width="500" />
+  <img src="screenshots/help2.png", width="500" /> 
+</p>
+
+<p float="centre">
+  <img src="screenshots/help3.png" width="500" />
+  <img src="screenshots/help3.png", width="500" /> 
+</p>
+
 ## Quick walkthrough
 
 First create a table, specifying the table name, as well as column names. If your table name is more than one word or if you intend to place more than on word within each cell, remember to place "double quotation marks".
@@ -20,7 +34,7 @@ Then start appending rows to the table!
 
 ![append](screenshots/2_append.png)
 
-When appending a new row, you must specify every single cell. Otherwise the bot will return an error.
+When appending a new row, you must specify every single cell in the row. Otherwise, the entry is ambiguous, and the bot will return an error.
 
 ![append_error](screenshots/3_append_error.png)
 
