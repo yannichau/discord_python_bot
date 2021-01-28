@@ -173,7 +173,7 @@ class cluelessBot(commands.Bot):
 				self.file_dict[self.ID] = self.file_name
 				self.appending_dict[self.ID] = self.appending
 				self.df_dict[self.ID] = dict_append(self.df_dict[self.ID], self.df)
-				     
+					 
 		@self.command(name = 'open', pass_context=True, help = ' [filename]')
 		async def _open(context, *args):
 			if len(args) == 0:
@@ -341,6 +341,31 @@ class cluelessBot(commands.Bot):
 				await context.message.channel.send('❌ File not found in trash. System error: ' + str(e))	
 
 		########## PANDA COMMANDS ##########
+
+		@self.command(name = 'update', pass_context=True)
+		async def _update(context, *args):
+			self.ID = context.guild.id
+			if self.appending_dict[self.ID] == True:
+				try:
+					# Load File
+					self.file_name = self.file_dict[self.ID]
+					self.appending = self.appending_dict[self.ID]
+					self.df = self.df_dict[self.ID][-1]
+
+					# Identify Position
+					row = args[0]
+					col = args[1]
+					value = args[2]
+					self.df.at[row,col] = value
+
+					save_file(self.df, self.ID, self.file_name)
+					await context.message.channel.send("👇 Amended the table: " + self.file_name)
+					await fprint(context, self.file_name, self.df)
+					self.df_dict[self.ID] = dict_append(self.df_dict[self.ID], self.df)
+				except Exception as e:
+					await context.message.channel.send('❌ System error: ' + str(e))
+			else:
+				await context.message.channel.send('❓ You don\'t have a table opened.')
 
 		@self.command(name = 'append', pass_context=True, help = '[row name or index label] [values in order of columns]')
 		async def _append(context, *args):

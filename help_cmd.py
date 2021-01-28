@@ -117,6 +117,11 @@ panda_list = [
         "arguments": "<-a> ",
         "description": "🧮 compute totals for each col. <-a> to append total row to bottom of table",
     },
+    {
+        "name": "update",
+        "arguments": "[row] [col] [new value]",
+        "description": "↔️ update value at [row, col]",
+    },
 ]
 
 all_list = fileop_list + trash_list + misc_list + panda_list

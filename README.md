@@ -21,7 +21,7 @@ This is a list of all commands available, which can be viewed upon calling `^hel
 
 <p float="centre">
   <img src="screenshots/help3.png" width="500" />
-  <img src="screenshots/help3.png", width="500" /> 
+  <img src="screenshots/help4.png", width="500" /> 
 </p>
 
 ## Quick walkthrough
