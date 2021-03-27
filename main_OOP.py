@@ -12,12 +12,21 @@ from collections import defaultdict
 
 # Print Packages
 from tabulate import tabulate
+import dataframe_image as dfi
 
 # Print Table
+
+async def export(ctx, temp_df, path):
+	file_name = str(path) + '.png'
+	dfi.export(temp_df, file_name)
+	await ctx.message.channel.send(file = discord.File(file_name))
+
 async def fprint(ctx, tab_name, temp_df):
-	table_string = tabulate(temp_df, headers='keys', tablefmt='psql')
-	await ctx.message.channel.send("""``` {}
-{} ```""".format(tab_name, table_string))
+	table_string = tabulate(temp_df, headers='keys', tablefmt='psql') # headers='keys', tablefmt='psql')
+	string_list = table_string.splitlines()
+	await ctx.message.channel.send("""``` {} ```""".format(tab_name))
+	for line in string_list:
+		await ctx.message.channel.send("""``` {} ```""".format(line))
 
 # Manipulate tables.pkl or trash_index.pkl
 def list_drop(path, item):
@@ -260,7 +269,13 @@ class cluelessBot(commands.Bot):
 				self.file_name = str(args[0])
 				self.df = open_file(context.guild.id, self.file_name)
 				await context.message.channel.send("🖨 Printing the table: " + self.file_name)
-				await fprint(context, self.file_name, self.df)
+				if len(args) > 1:
+					if args[1] == "-i":
+						await export(context, self.df, 'tables/' + str(self.ID) + '/' + self.file_name)
+					else:
+						await fprint(context, self.file_name, self.df)
+				else:
+					await fprint(context, self.file_name, self.df)
 			except Exception as e:
 				await context.message.channel.send('❌ File not found. System error: ' + str(e))
 
